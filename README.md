@@ -42,7 +42,7 @@ Use any simple method (in-memory dictionary, small DB) for storing and retrievin
 
 ## 1. System Requirements:
 - (no using GPU only CPU) RAM 16G - slow running, RAM 32G  - optimal
-- OS linux Ubuntu 24.04 with installed: docker (sudoless), docker-compose(sudoless), make, git, curl, wget
+- OS Linux Ubuntu 24.04 with installed: docker (sudoless), docker-compose (sudoless), make, git, curl, wget
 if not installed:
 #### To Install:
 ```bash
