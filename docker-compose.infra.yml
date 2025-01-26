@@ -1,0 +1,128 @@
+networks:
+  agentic:
+    name: agentic
+    driver: bridge
+    
+
+services:
+  ollama:
+    container_name: ollama
+    hostname: ollama
+    image: ollama/ollama:latest
+    volumes:
+      - ${DATA_STORAGE}/ollama:/root/.ollama
+    ports:
+      - "0.0.0.0:11434:11434"
+    #restart: unless-stopped
+    networks:
+      - agentic
+
+  ollama-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: ollama-webui
+    hostname: ollama-webui
+    depends_on:
+      - ollama
+    ports:
+      - "0.0.0.0:3090:8080"
+    environment:
+      - OLLAMA_API_BASE_URL=http://localhost:11434
+      #- CHROMA_HTTP_HOST=http://localhost:3110
+    #extra_hosts:
+    #  - host.docker.internal:host-gateway
+    #restart: unless-stopped
+    volumes:
+      - ${DATA_STORAGE}/open-webui-local:/app/backend/data
+    networks:
+      - agentic
+  
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    hostname: chromadb
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    volumes:
+      - ${DATA_STORAGE}/chromadb:/chroma/chroma
+      
+    command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=${PERSIST_DIRECTORY:-/chroma/chroma}
+      - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY:-TRUE}
+    restart: unless-stopped # possible values are: "no", always", "on-failure", "unless-stopped"
+    ports:
+      - "0.0.0.0:3110:8000"
+    healthcheck:
+      # Adjust below to match your container port
+      test: [ "CMD", "curl", "-f", "http://localhost:3110/api/v2/heartbeat" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - agentic
+
+  
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis:latest
+    expose:
+      - 6379
+    env_file:
+      - env.infra
+    ports:
+      - "0.0.0.0:6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDISPASSWORD}           
+      REDIS_USER: ${REDISUSER}                   
+      REDIS_USER_PASSWORD: ${REDISUSERPASSWORD}
+    volumes:
+      - ${DATA_STORAGE}/redis:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "docker1234", "ping"] 
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    tty: true
+    stdin_open: true
+    networks:
+      - agentic
+      
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: ghcr.io/joeferner/redis-commander:latest
+    
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "0.0.0.0:8081:8081"
+    tty: true
+    stdin_open: true
+    networks:
+      - agentic
+
+  adminer:
+    container_name: adminer
+    hostname: adminer
+    image: adminer:latest
+    ports:
+      - "0.0.0.0:8383:8080"
+    logging:
+      options:
+        max-size: 10m
+    tty: true
+    stdin_open: true
+    networks:
+      - agentic
+

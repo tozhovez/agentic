@@ -1,0 +1,37 @@
+networks:
+  agentic:
+    name: agentic
+    driver: bridge
+
+services:
+  #candidate:
+  #  container_name: candidate
+  #  hostname: candidate
+  #  build:
+  #    context: .
+  #    dockerfile: candidate/Dockerfile
+  #  ports:
+  #    - "0.0.0.0:8755:8755"
+  #  #environment:
+  #  #  - INTERVIEWER_SERVICE_URL=http://interviewer:8765
+  #  volumes:
+  #    - ./candidate:/app
+  #  depends_on:
+  #    - interviewer
+  #  networks:
+  #    - agentic
+  #  command: ["python", "main.py"]
+
+  interviewer:
+    container_name: interviewer
+    hostname: interviewer
+    build:
+      context: .
+      dockerfile: interviewer/Dockerfile
+    ports:
+      - "0.0.0.0:8765:8765"
+    volumes:
+      - ./interviewer:/app
+    networks:
+      - agentic
+    command: ["python", "main.py"]
