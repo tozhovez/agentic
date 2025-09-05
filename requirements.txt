@@ -21,7 +21,7 @@ python-dotenv==1.0.1
 PyYAML==6.0.2
 redis==5.2.1
 requests==2.32.3
-setuptools==75.8.0
+setuptools==78.1.1
 urllib3==2.3.0
 uvicorn==0.34.0
 validators==0.34.0
