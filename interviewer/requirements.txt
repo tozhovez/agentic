@@ -25,5 +25,5 @@ setuptools==75.8.0
 urllib3==2.3.0
 uvicorn==0.34.0
 validators==0.34.0
-wheel==0.45.1
+wheel==0.46.2
 
